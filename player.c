@@ -3,7 +3,7 @@ int fd,errcode;
 ssize_t n;
 socklen_t addrlen;
 struct addrinfo hints,*res, *p;
-char buffer[128], hostname[1024];
+char input[1024], hostname[1024];
 char * port;
 char ipstr[128];
 char * ip;
@@ -16,7 +16,7 @@ char * ip;
 */ 
 void getIPAddress(){
     if (gethostname(hostname, sizeof(hostname)) != 0) {
-        fprintf(stderr, "Failed to get hostname\n");
+        fprintf(stderr, "-> Failed to get hostname\n");
         return;
     }
     memset(&hints, 0, sizeof(hints));
@@ -35,8 +35,30 @@ void getIPAddress(){
     }
 
 }
+void start(char * args){
+    printf("%s\n", args);
+}
+void try(char * args){
+    printf("%s\n", args);
+}
+void show_trials(char * args){
+    printf("%s\n", args);
+}
+void scoreboard(char * args){
+    printf("%s\n", args);
+}
+void quit(char * args){
+    printf("%s\n", args);
+}
+void exit_client(char * args){
+    printf("%s\n", args);
+}
+void unknown(char * args){
+    fprintf(stderr,"-> Unknown command and arguments, please try again:\nMENU");
+}
+
 int main(int argc, char *argv[]){
-    char flags[] = "[-n GSIP] [-p GSport]";
+    printf("-> MENU:\n%s\n", MENU);
 
     switch (argc){
         case 1:
@@ -57,7 +79,7 @@ int main(int argc, char *argv[]){
                     //printf("PORT optional: %s\n", port);
                 }
                 else{
-                    fprintf(stderr,"Flag not defined, flags:\n  %s\n", flags);
+                    fprintf(stderr,"-> Flag not defined, flags:\n  %s\n", FLAGS);
                     return -1;
                 }
             }
@@ -65,7 +87,7 @@ int main(int argc, char *argv[]){
         case 5:
             //check flags
             if (strcmp(argv[1],"-n") || strcmp(argv[3],"-p")){
-                fprintf(stderr, "Flag not defined or not ordered correctly, flags:\n    %s\n", flags);
+                fprintf(stderr, "-> Flag not defined or not ordered correctly, flags:\n    %s\n", FLAGS);
                 return -1;
             }
             ip = argv[2];
@@ -73,9 +95,26 @@ int main(int argc, char *argv[]){
             break;
             
         default:
-            fprintf(stderr, "Wrong number of arguments, flags:\n    %s\n", flags);
+            fprintf(stderr, "-> Wrong number of arguments, flags:\n    %s\n", FLAGS);
             return -1;
             break;
     }
-    printf("IP: %s  PORT: %s\n", ip, port);
+    char * command;
+    char * arguments;
+
+    //commands
+    while (1){
+        if (!fgets(input, sizeof(input)-1, stdin)){
+            fprintf(stderr, "-> Unable to read command, please try again\n");
+        }
+        command = strtok(input, " ");
+        arguments = strtok(NULL,"\n");
+        //printf("-> Command:%sArgs:%s\n", command, arguments);
+
+
+        for (int i = 0; commandTable[i].command != NULL; i++) {
+            if (!strcmp(command, commandTable[i].command))
+                commandTable[i].handler(arguments);
+        }
+    }
 }
