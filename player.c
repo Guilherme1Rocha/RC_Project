@@ -33,33 +33,55 @@ void getIPAddress(){
         ip = strdup(ipstr); // Copy the IP address to ip
         break;
     }
-
 }
+
 void start(char * args){
+    if (!args){
+        fprintf(stderr, "-> This command needs arguments\n");
+        return;
+    }
     printf("%s\n", args);
 }
 void try(char * args){
+    if (!args){
+        fprintf(stderr, "-> This command needs arguments\n");
+        return;
+    }
     printf("%s\n", args);
 }
 void show_trials(char * args){
-    printf("%s\n", args);
+    if (args){
+        fprintf(stderr, "-> This command doesn't take any arguments");
+        return;
+    }
 }
 void scoreboard(char * args){
-    printf("%s\n", args);
+    if (args){
+        fprintf(stderr, "-> This command doesn't take any arguments");
+        return;
+    }
 }
 void quit(char * args){
-    printf("%s\n", args);
+    if (args){
+        fprintf(stderr, "-> This command doesn't take any arguments\n");
+        return;
+    }
 }
 void exit_client(char * args){
-    printf("%s\n", args);
+    if (args){
+        fprintf(stderr, "-> This command doesn't take any arguments\n");
+        return;
+    }
 }
 void unknown(char * args){
-    fprintf(stderr,"-> Unknown command and arguments, please try again:\nMENU");
+    if (args)
+        fprintf(stderr,"-> Unknown command and arguments, please try again:\nMENU");
+    else 
+        fprintf(stderr,"-> Unknown command, please try again:\nMENU");
 }
 
 int main(int argc, char *argv[]){
     printf("-> MENU:\n%s\n", MENU);
-
     switch (argc){
         case 1:
             // same IP as the server and definied port (5800+GN)
@@ -69,14 +91,12 @@ int main(int argc, char *argv[]){
         case 3:
             if (!strcmp(argv[1], "-n")){
                 ip = argv[2];
-                //printf("IP optional: %s\n", ip_address);
                 port = PORT;
             }
             else {
                 if (!strcmp(argv[1], "-p")){
                     port = argv[2];
                     getIPAddress();
-                    //printf("PORT optional: %s\n", port);
                 }
                 else{
                     fprintf(stderr,"-> Flag not defined, flags:\n  %s\n", FLAGS);
@@ -101,20 +121,28 @@ int main(int argc, char *argv[]){
     }
     char * command;
     char * arguments;
+    int i;
 
     //commands
     while (1){
         if (!fgets(input, sizeof(input)-1, stdin)){
             fprintf(stderr, "-> Unable to read command, please try again\n");
         }
+        input[strlen(input) - 1] = '\0';
+
         command = strtok(input, " ");
-        arguments = strtok(NULL,"\n");
-        //printf("-> Command:%sArgs:%s\n", command, arguments);
-
-
-        for (int i = 0; commandTable[i].command != NULL; i++) {
-            if (!strcmp(command, commandTable[i].command))
-                commandTable[i].handler(arguments);
+        if (command){
+            arguments = strtok(NULL,"\0");
+            for (i = 0; commandTable[i].command != NULL; i++) {
+                if (!strcmp(command, commandTable[i].command)){
+                    commandTable[i].handler(arguments);
+                    break;
+                }
+            }
+            if (!commandTable[i].command)
+                fprintf(stderr, "-> Unknown command, please try again\n");
         }
+        else
+            fprintf(stderr, "-> Choose a command\n");
     }
 }
