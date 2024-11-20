@@ -1,12 +1,31 @@
-#include "player.h"
+#include "clientCommands.h"
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
+#define PORT "58011"
+// command specifications
+#define FLAGS "[-n GSIP] [-p GSport]"
+#define MENU "start PLID max_playtime\ntry C1 C2 C3 C4\nshow_trials 'or' st\nscoreboard 'or' sb\nquit\nexit\ndebug PLID max_playtime C1 C2 C3 C4\n"
+// connection variables
 int fd,errcode;
 ssize_t n;
 socklen_t addrlen;
 struct addrinfo hints,*res, *p;
-char input[1024], hostname[1024];
+char hostname[1024];
 char * port;
 char ipstr[128];
 char * ip;
+
+char input[1024];
+
+char buffer[1024];
 
 /* 
 "If  this  argument  is  omitted,  the  GS  should  be running on the same machine."
@@ -33,51 +52,6 @@ void getIPAddress(){
         ip = strdup(ipstr); // Copy the IP address to ip
         break;
     }
-}
-
-void start(char * args){
-    if (!args){
-        fprintf(stderr, "-> This command needs arguments\n");
-        return;
-    }
-    printf("%s\n", args);
-}
-void try(char * args){
-    if (!args){
-        fprintf(stderr, "-> This command needs arguments\n");
-        return;
-    }
-    printf("%s\n", args);
-}
-void show_trials(char * args){
-    if (args){
-        fprintf(stderr, "-> This command doesn't take any arguments");
-        return;
-    }
-}
-void scoreboard(char * args){
-    if (args){
-        fprintf(stderr, "-> This command doesn't take any arguments");
-        return;
-    }
-}
-void quit(char * args){
-    if (args){
-        fprintf(stderr, "-> This command doesn't take any arguments\n");
-        return;
-    }
-}
-void exit_client(char * args){
-    if (args){
-        fprintf(stderr, "-> This command doesn't take any arguments\n");
-        return;
-    }
-}
-void unknown(char * args){
-    if (args)
-        fprintf(stderr,"-> Unknown command and arguments, please try again:\nMENU");
-    else 
-        fprintf(stderr,"-> Unknown command, please try again:\nMENU");
 }
 
 int main(int argc, char *argv[]){
@@ -123,7 +97,7 @@ int main(int argc, char *argv[]){
     char * arguments;
     int i;
 
-    //commands
+    //wait for command
     while (1){
         if (!fgets(input, sizeof(input)-1, stdin)){
             fprintf(stderr, "-> Unable to read command, please try again\n");
@@ -131,6 +105,7 @@ int main(int argc, char *argv[]){
         input[strlen(input) - 1] = '\0';
 
         command = strtok(input, " ");
+
         if (command){
             arguments = strtok(NULL,"\0");
             for (i = 0; commandTable[i].command != NULL; i++) {
@@ -145,4 +120,5 @@ int main(int argc, char *argv[]){
         else
             fprintf(stderr, "-> Choose a command\n");
     }
+    return 0;
 }

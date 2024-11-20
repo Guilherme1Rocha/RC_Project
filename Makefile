@@ -2,7 +2,7 @@
 CC = gcc                 # Compiler
 CFLAGS = -Wall -Wextra   # Compilation flags
 TARGET = player        # Output executable
-SRC = player.c          # Source file
+SRC = player.c clientCommands.c     # Source file
 
 # Default target
 all: $(TARGET)
