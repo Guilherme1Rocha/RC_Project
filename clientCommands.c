@@ -32,7 +32,9 @@ int start(char * args){
         return 1;
     }
     char * playerID = getNextArg(&args);
-    if (strlen(playerID) != PLAYER_ID_SIZE || (atoi(playerID) / pow(10, PLAYER_ID_SIZE - 1) < 1)){
+    char * endptr; 
+    strtol(playerID,&endptr, 10);
+    if (strlen(playerID) != PLAYER_ID_SIZE || !strcmp(endptr,playerID) || *endptr != '\0') {
         fprintf(stderr,"-> PLayer ID must be 6 digits (and positive)\n");
         return 1;
     }
@@ -42,7 +44,8 @@ int start(char * args){
         fprintf(stderr, "-> Not enough arguments (max_playtime missing)\n");
         return 1;
     }
-    if (strlen(maxPlaytime) != MAX_PLAYTIME_SIZE || (atoi(maxPlaytime) / pow(10, MAX_PLAYTIME_SIZE - 1) < 1)){
+    strtol(maxPlaytime,&endptr, 10);
+    if (strlen(maxPlaytime) != MAX_PLAYTIME_SIZE || !strcmp(endptr,maxPlaytime) || *endptr != '\0'){
         fprintf(stderr,"-> Max Playtime must be 3 digits (and positive)\n");
         return 1;
     }
@@ -50,31 +53,35 @@ int start(char * args){
         fprintf(stderr,"-> Too many arguments (playerID and max_playtime)\n");
         return 1;
     }
-    snprintf(buffer, sizeof(buffer), "SNG %s %s", playerID, maxPlaytime);
+    snprintf(buffer, sizeof(buffer), "SNG %s %s\n", playerID, maxPlaytime);
     return 0;
 }
+
 
 int try(char * args){
     if (!args){
         fprintf(stderr, "-> This command needs arguments\n");
         return 1;
     }
-    char * move;
+    char * move[COLORS_MOVE];
+    char * color;
     for (int i = 0; i < COLORS_MOVE; i++){
-        move = getNextArg(&args);
-        if (!move){
-            fprintf(stderr, "-> Move not valid\n");
+        color = getNextArg(&args);
+        if (!color){
+            fprintf(stderr, "-> colore not valid\n");
             return 1;
         }
-        if (!validColor(move)){
-            fprintf(stderr, "-> Color %s not valid\n", move);
+        if (!validColor(color)){
+            fprintf(stderr, "-> Color %s not valid\n", color);
             return 1;
         }
+        move[i] = color;
     }
     if (args){
         fprintf(stderr, "-> Too many arguments (4 colors for a valid move)\n");
         return 1;
     }
+    //snprintf(buffer, sizeof(buffer), "SNG %s %s\n", playerID, maxPlaytime);
     return 0;
 }
 

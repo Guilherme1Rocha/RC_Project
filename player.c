@@ -18,6 +18,7 @@ int fd,errcode;
 ssize_t n;
 socklen_t addrlen;
 struct addrinfo hints,*res, *p;
+struct sockaddr_in addr;
 char hostname[1024];
 char * port;
 char ipstr[128];
@@ -26,6 +27,7 @@ char * ip;
 char input[1024];
 
 char buffer[1024];
+// FAZER APENAS ACCEPT DO TCP DENTRO DO IF DO SELECT
 
 /* 
 "If  this  argument  is  omitted,  the  GS  should  be running on the same machine."
@@ -55,7 +57,6 @@ void getIPAddress(){
 }
 
 int main(int argc, char *argv[]){
-    printf("-> MENU:\n%s\n", MENU);
     switch (argc){
         case 1:
             // same IP as the server and definied port (5800+GN)
@@ -93,9 +94,18 @@ int main(int argc, char *argv[]){
             return -1;
             break;
     }
+    printf("-> MENU:\n%s\n", MENU);
     char * command;
     char * arguments;
     int i;
+    fd = socket(AF_INET,SOCK_DGRAM,0); //UDP socket
+    if(fd==-1) /*error*/
+        exit(1);
+
+    memset(&hints,0,sizeof hints);
+    hints.ai_family = AF_INET; //IPv4
+    hints.ai_socktype=SOCK_DGRAM; //UDP socket
+    errcode=getaddrinfo("tejo.tecnico.ulisboa.pt",PORT,&hints,&res);
 
     //wait for command
     while (1){
@@ -110,7 +120,19 @@ int main(int argc, char *argv[]){
             arguments = strtok(NULL,"\0");
             for (i = 0; commandTable[i].command != NULL; i++) {
                 if (!strcmp(command, commandTable[i].command)){
-                    commandTable[i].handler(arguments);
+                    char buffer_resServer[128];
+                    if (!commandTable[i].handler(arguments)){
+                        //call server communication function
+                        n = sendto(fd,buffer,strlen(buffer),0,res->ai_addr,res->ai_addrlen);
+                        if(n == -1){
+                            exit(1);
+                        } /*error*/ 
+                        addrlen = sizeof(addr);
+                        n = recvfrom(fd,buffer_resServer,128,0,(struct sockaddr*)&addr,&(addrlen));
+                        if(n == -1) /*error*/ 
+                            exit(1); 
+                        printf("%s\n", buffer_resServer);
+                    }
                     break;
                 }
             }
